@@ -1,0 +1,22 @@
+services:
+  speedtest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: custome-speedtest-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - LISTEN_ADDR=:3000
+      - BUFFER_SIZE=4194304
+      - DEFAULT_DURATION=10
+      - DEFAULT_PARALLEL=4
+      - DEFAULT_OVERHEAD=1.0
+      - AUTO_RUN=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

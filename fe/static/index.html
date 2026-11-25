@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custome Speedtest - Network Speed Test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dark-mode">
+    <div class="mesh-background">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>Custome<span>Speed</span></h1>
+                    <span class="tag">HTML5 Engine</span>
+                </div>
+            </div>
+
+            <div class="header-controls">
+                <button id="btn-theme-toggle" class="btn-icon" title="Toggle Light / Dark Mode">
+                    <svg id="theme-icon-sun" class="theme-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <svg id="theme-icon-moon" class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+                <button id="btn-history-toggle" class="btn-icon" title="Test History">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </button>
+                <button id="btn-settings-toggle" class="btn-icon" title="Settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Card -->
+        <main class="main-card">
+            <!-- Status Badge -->
+            <div class="status-container">
+                <div id="status-badge" class="status-badge ready">
+                    <span class="status-dot"></span>
+                    <span id="status-text">Ready to Test</span>
+                </div>
+            </div>
+
+            <!-- Central Gauge Section -->
+            <div class="gauge-wrapper">
+                <canvas id="gauge-canvas" width="380" height="230"></canvas>
+                <div class="gauge-center-content">
+                    <div class="gauge-speed-label" id="gauge-phase-name">SPEED</div>
+                    <div class="gauge-speed-val">
+                        <span id="speed-display">0.0</span>
+                    </div>
+                    <div class="gauge-speed-unit">Mbps</div>
+                    <div class="gauge-progress-bar-container">
+                        <div id="test-progress-bar" class="test-progress-bar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Telemetry Metrics Cards -->
+            <div class="metrics-grid">
+                <!-- Ping / Jitter -->
+                <div class="metric-card" id="metric-ping-card">
+                    <div class="metric-header">
+                        <div class="metric-icon ping-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                        </div>
+                        <span class="metric-title">LATENCY</span>
+                    </div>
+                    <div class="metric-body">
+                        <div class="primary-metric">
+                            <span id="val-ping" class="metric-number">--</span>
+                            <span class="metric-unit">ms</span>
+                        </div>
+                        <div class="sub-metric">
+                            <span class="sub-metric-label">Jitter:</span>
+                            <span id="val-jitter" class="sub-metric-val">-- ms</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download -->
+                <div class="metric-card" id="metric-download-card">
+                    <div class="metric-header">
+                        <div class="metric-icon download-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"></path></svg>
+                        </div>
+                        <span class="metric-title">DOWNLOAD</span>
+                    </div>
+                    <div class="metric-body">
+                        <div class="primary-metric">
+                            <span id="val-download" class="metric-number">--</span>
+                            <span class="metric-unit">Mbps</span>
+                        </div>
+                        <div class="sub-metric">
+                            <span class="sub-metric-label">Data:</span>
+                            <span id="val-download-bytes" class="sub-metric-val">-- MB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload -->
+                <div class="metric-card" id="metric-upload-card">
+                    <div class="metric-header">
+                        <div class="metric-icon upload-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"></path></svg>
+                        </div>
+                        <span class="metric-title">UPLOAD</span>
+                    </div>
+                    <div class="metric-body">
+                        <div class="primary-metric">
+                            <span id="val-upload" class="metric-number">--</span>
+                            <span class="metric-unit">Mbps</span>
+                        </div>
+                        <div class="sub-metric">
+                            <span class="sub-metric-label">Data:</span>
+                            <span id="val-upload-bytes" class="sub-metric-val">-- MB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Bandwidth Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <span class="chart-title">Real-time Bandwidth Transfer</span>
+                    <span id="chart-max-indicator" class="chart-badge">Peak: 0.0 Mbps</span>
+                </div>
+                <canvas id="live-chart" width="700" height="110"></canvas>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="actions-wrapper">
+                <button id="btn-start" class="btn btn-primary">
+                    <svg class="btn-svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <span>START TEST</span>
+                </button>
+                <button id="btn-stress" class="btn btn-secondary">
+                    <svg class="btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    <span>STRESS MODE</span>
+                </button>
+            </div>
+
+            <!-- Connection Info Bar -->
+            <div class="info-bar">
+                <div class="info-item">
+                    <span class="info-label">Server</span>
+                    <span id="info-server" class="info-value">Local Engine</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Streams</span>
+                    <span id="info-streams" class="info-value">4 Parallel</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Duration</span>
+                    <span id="info-duration" class="info-value">10s / phase</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Buffer</span>
+                    <span id="info-buffer" class="info-value">4 MB in RAM</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Settings Modal / Drawer -->
+        <div id="settings-modal" class="modal-backdrop hidden">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3>Speedtest Preferences</h3>
+                    <button id="btn-close-settings" class="btn-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="input-duration">
+                            <span>Test Duration (seconds)</span>
+                            <span id="lbl-duration-val" class="field-val">10s</span>
+                        </label>
+                        <input type="range" id="input-duration" min="5" max="30" step="1" value="10">
+                        <small>Higher duration yields greater accuracy on high-speed connections.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-parallel">
+                            <span>Parallel Streams</span>
+                            <span id="lbl-parallel-val" class="field-val">4</span>
+                        </label>
+                        <input type="range" id="input-parallel" min="1" max="16" step="1" value="4">
+                        <small>Number of simultaneous HTTP streams for download/upload (OpenSpeedTest standard is 4 to 8).</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-overhead">
+                            <span>Overhead Compensation</span>
+                            <span id="lbl-overhead-val" class="field-val">1.00x</span>
+                        </label>
+                        <input type="range" id="input-overhead" min="1.0" max="1.15" step="0.01" value="1.0">
+                        <small>Compensates for TCP/IP packet header overhead (1.0 = raw HTTP payload).</small>
+                    </div>
+
+                    <div class="form-group toggle-group">
+                        <label class="toggle-label" for="chk-auto-start">
+                            <span>Auto-start test on page load</span>
+                        </label>
+                        <input type="checkbox" id="chk-auto-start">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="btn-save-settings" class="btn btn-primary btn-sm">Save & Apply</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Modal -->
+        <div id="history-modal" class="modal-backdrop hidden">
+            <div class="modal-card modal-lg">
+                <div class="modal-header">
+                    <h3>Recent Speed Tests</h3>
+                    <button id="btn-close-history" class="btn-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="history-table-container" class="table-container">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Ping</th>
+                                    <th>Jitter</th>
+                                    <th>Download</th>
+                                    <th>Upload</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                                <tr><td colspan="5" class="empty-state">No tests recorded yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="btn-clear-history" class="btn btn-secondary btn-sm">Clear History</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Custome Speedtest — High Performance In-Memory Network Speed Test Engine</p>
+            <p class="footer-meta">Zero-disk write buffer • FastHTTP / Fiber Core</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
