@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Build statically linked binary
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/speedtest main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/custome-speedtest main.go
 
 # Final runtime image
 FROM alpine:3.24
@@ -24,7 +24,7 @@ WORKDIR /app
 RUN apk --no-cache add ca-certificates tzdata curl
 
 # Copy binary from builder
-COPY --from=builder /app/speedtest /app/speedtest
+COPY --from=builder /app/custome-speedtest /app/custome-speedtest
 
 # Expose default HTTP port
 EXPOSE 3000
@@ -37,4 +37,4 @@ ENV LISTEN_ADDR=":3000" \
     DEFAULT_OVERHEAD="1.0"
 
 # Run speedtest server by default
-ENTRYPOINT ["/app/speedtest"]
+ENTRYPOINT ["/app/custome-speedtest"]
