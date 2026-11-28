@@ -212,7 +212,7 @@ Configuration options can be supplied via environment variables or `.env` file:
 | Variable | Default | Description |
 | :--- | :--- | :--- |
 | `LISTEN_ADDR` | `:3000` | Address and port to bind HTTP server |
-| `BUFFER_SIZE` | `4194304` (4MB) | Size of in-memory incompressible buffer in RAM |
+| `BUFFER_SIZE` | `33554432` (32MB) | Size of in-memory incompressible buffer in RAM |
 | `DEFAULT_DURATION` | `10` | Default test duration in seconds |
 | `DEFAULT_PARALLEL` | `4` | Default number of parallel connection streams |
 | `DEFAULT_OVERHEAD` | `1.0` | Default TCP/IP overhead multiplier |

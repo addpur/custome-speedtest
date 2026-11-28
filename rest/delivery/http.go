@@ -76,6 +76,9 @@ func (h *Handler) Download(c *fiber.Ctx) error {
 	durationSec := c.QueryInt("duration", 0)
 
 	if size > 0 {
+		if size <= bufLen {
+			return c.Send(buf[:size])
+		}
 		c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
 			remaining := int64(size)
 			for remaining > 0 {
@@ -259,6 +262,23 @@ AVG_LATENCY=$(awk "BEGIN {printf \"%%.2f\", $LATENCY_SUM / $SAMPLES}")
 echo "Done."
 echo "    Latency : ${AVG_LATENCY} ms"
 
+format_bytes() {
+  local b=$1
+  if [ $(awk "BEGIN {print ($b >= 1125899906842624)}") -eq 1 ]; then
+    awk "BEGIN {printf \"%%.2f PB\", $b / 1125899906842624}"
+  elif [ $(awk "BEGIN {print ($b >= 1099511627776)}") -eq 1 ]; then
+    awk "BEGIN {printf \"%%.2f TB\", $b / 1099511627776}"
+  elif [ $(awk "BEGIN {print ($b >= 1073741824)}") -eq 1 ]; then
+    awk "BEGIN {printf \"%%.2f GB\", $b / 1073741824}"
+  elif [ $(awk "BEGIN {print ($b >= 1048576)}") -eq 1 ]; then
+    awk "BEGIN {printf \"%%.2f MB\", $b / 1048576}"
+  elif [ $(awk "BEGIN {print ($b >= 1024)}") -eq 1 ]; then
+    awk "BEGIN {printf \"%%.2f KB\", $b / 1024}"
+  else
+    echo "${b} B"
+  fi
+}
+
 # 2. Download Test
 echo "[*] Testing Download Speed ($PARALLEL streams, ${DURATION}s)..."
 TMP_DIR=$(mktemp -d /tmp/ct_speedtest.XXXXXX)
@@ -266,10 +286,11 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 START_TIME=$(date +%%s)
 for i in $(seq 1 $PARALLEL); do
-  curl -s -N -o /dev/null -w "%%{size_download}\n" \
+  curl -s -o /dev/null -w "%%{size_download}\n" \
     "$SERVER/api/v1/download?duration=${DURATION}&stream=${i}" > "$TMP_DIR/dl_${i}.txt" &
 done
 wait
+
 END_TIME=$(date +%%s)
 ELAPSED=$((END_TIME - START_TIME))
 if [ "$ELAPSED" -le 0 ]; then ELAPSED=$DURATION; fi
@@ -280,14 +301,14 @@ for f in "$TMP_DIR"/dl_*.txt; do
   TOTAL_DL_BYTES=$((TOTAL_DL_BYTES + BYTES))
 done
 
-DL_MB=$(awk "BEGIN {printf \"%%.2f\", $TOTAL_DL_BYTES / 1048576}")
+DL_TRANSFERRED=$(format_bytes $TOTAL_DL_BYTES)
 DL_MBPS=$(awk "BEGIN {printf \"%%.2f\", ($TOTAL_DL_BYTES * 8) / ($ELAPSED * 1000000)}")
-echo "    Download: ${DL_MBPS} Mbps (${DL_MB} MB transferred)"
+echo "    Download: ${DL_MBPS} Mbps (${DL_TRANSFERRED} transferred)"
 
 # 3. Upload Test
 echo "[*] Testing Upload Speed ($PARALLEL streams, ${DURATION}s)..."
 UPLOAD_CHUNK="$TMP_DIR/chunk.bin"
-dd if=/dev/zero of="$UPLOAD_CHUNK" bs=1048576 count=2 2>/dev/null
+dd if=/dev/zero of="$UPLOAD_CHUNK" bs=1048576 count=4 2>/dev/null
 
 START_UL_TIME=$(date +%%s)
 for i in $(seq 1 $PARALLEL); do
@@ -314,9 +335,9 @@ for f in "$TMP_DIR"/ul_*.txt; do
   TOTAL_UL_BYTES=$((TOTAL_UL_BYTES + BYTES))
 done
 
-UL_MB=$(awk "BEGIN {printf \"%%.2f\", $TOTAL_UL_BYTES / 1048576}")
+UL_TRANSFERRED=$(format_bytes $TOTAL_UL_BYTES)
 UL_MBPS=$(awk "BEGIN {printf \"%%.2f\", ($TOTAL_UL_BYTES * 8) / ($ELAPSED_UL * 1000000)}")
-echo "    Upload  : ${UL_MBPS} Mbps (${UL_MB} MB transferred)"
+echo "    Upload  : ${UL_MBPS} Mbps (${UL_TRANSFERRED} transferred)"
 
 echo "------------------------------------------------------"
 echo "  🏆 TEST SUMMARY:"

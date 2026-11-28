@@ -106,7 +106,7 @@
                         </div>
                         <div class="sub-metric">
                             <span class="sub-metric-label">Data:</span>
-                            <span id="val-download-bytes" class="sub-metric-val">-- MB</span>
+                            <span id="val-download-bytes" class="sub-metric-val">--</span>
                         </div>
                     </div>
                 </div>
@@ -126,19 +126,35 @@
                         </div>
                         <div class="sub-metric">
                             <span class="sub-metric-label">Data:</span>
-                            <span id="val-upload-bytes" class="sub-metric-val">-- MB</span>
+                            <span id="val-upload-bytes" class="sub-metric-val">--</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Live Bandwidth Chart -->
-            <div class="chart-container">
-                <div class="chart-header">
-                    <span class="chart-title">Real-time Bandwidth Transfer</span>
-                    <span id="chart-max-indicator" class="chart-badge">Peak: 0.0 Mbps</span>
+            <!-- Live Bandwidth Charts (Separated Download & Upload) -->
+            <div class="chart-max-indicator"><span id="chart-max-indicator" class="chart-badge">Peak: 0.0 Mbps</span></div>
+<div class="charts-grid">
+                <div class="chart-container chart-download">
+                    <div class="chart-header">
+                        <div class="chart-title-group">
+                            <span class="chart-dot download-dot"></span>
+                            <span class="chart-title">Download Bandwidth</span>
+                        </div>
+                        <span id="chart-dl-peak" class="chart-badge download-badge">Peak: 0.0 Mbps</span>
+                    </div>
+                    <canvas id="live-dl-chart" width="340" height="90"></canvas>
                 </div>
-                <canvas id="live-chart" width="700" height="110"></canvas>
+                <div class="chart-container chart-upload">
+                    <div class="chart-header">
+                        <div class="chart-title-group">
+                            <span class="chart-dot upload-dot"></span>
+                            <span class="chart-title">Upload Bandwidth</span>
+                        </div>
+                        <span id="chart-ul-peak" class="chart-badge upload-badge">Peak: 0.0 Mbps</span>
+                    </div>
+                    <canvas id="live-ul-chart" width="340" height="90"></canvas>
+                </div>
             </div>
 
             <!-- Action Buttons -->
@@ -161,7 +177,7 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">Streams</span>
-                    <span id="info-streams" class="info-value">4 Parallel</span>
+                    <span id="info-streams" class="info-value">8 Parallel</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Duration</span>
@@ -169,7 +185,7 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">Buffer</span>
-                    <span id="info-buffer" class="info-value">4 MB in RAM</span>
+                    <span id="info-buffer" class="info-value">32 MB in RAM</span>
                 </div>
             </div>
         </main>
@@ -194,10 +210,10 @@
                     <div class="form-group">
                         <label for="input-parallel">
                             <span>Parallel Streams</span>
-                            <span id="lbl-parallel-val" class="field-val">4</span>
+                            <span id="lbl-parallel-val" class="field-val">8</span>
                         </label>
-                        <input type="range" id="input-parallel" min="1" max="16" step="1" value="4">
-                        <small>Number of simultaneous HTTP streams for download/upload (OpenSpeedTest standard is 4 to 8).</small>
+                        <input type="range" id="input-parallel" min="1" max="16" step="1" value="8">
+                        <small>Number of simultaneous HTTP streams for download/upload (OpenSpeedTest standard is 6 to 12).</small>
                     </div>
 
                     <div class="form-group">

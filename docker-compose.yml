@@ -9,7 +9,7 @@ services:
       - "3000:3000"
     environment:
       - LISTEN_ADDR=:3000
-      - BUFFER_SIZE=4194304
+      - BUFFER_SIZE=33554432
       - DEFAULT_DURATION=10
       - DEFAULT_PARALLEL=4
       - DEFAULT_OVERHEAD=1.0

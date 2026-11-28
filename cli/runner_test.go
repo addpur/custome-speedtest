@@ -57,6 +57,28 @@ func TestCLIHelp(t *testing.T) {
 	}
 }
 
+func TestFormatBytes(t *testing.T) {
+	tests := []struct {
+		bytes    int64
+		expected string
+	}{
+		{500, "500 B"},
+		{1024, "1.00 KB"},
+		{1536, "1.50 KB"},
+		{10 * 1024 * 1024, "10.00 MB"},
+		{2500 * 1024 * 1024, "2.44 GB"},
+		{5 * 1024 * 1024 * 1024 * 1024, "5.00 TB"},
+		{2 * 1024 * 1024 * 1024 * 1024 * 1024, "2.00 PB"},
+	}
+
+	for _, tc := range tests {
+		actual := cli.FormatBytes(tc.bytes)
+		if actual != tc.expected {
+			t.Errorf("FormatBytes(%d) = %s, expected %s", tc.bytes, actual, tc.expected)
+		}
+	}
+}
+
 func TestCLIInvalidServer(t *testing.T) {
 	err := cli.RunWithTransport([]string{"-server", "http://invalid-unreachable-host:9999", "-duration", "1"}, &mockFailingRT{})
 	if err == nil {

@@ -23,6 +23,7 @@ func NewFiberApp() *fiber.App {
 		DisableStartupMessage: true,
 		AppName:               "Custome Speedtest v1.0.0",
 		BodyLimit:             100 * 1024 * 1024, // 100MB upload limit
+		StreamRequestBody:     true,              // Enable true streaming from socket to io.Discard (zero RAM buffering)
 	})
 
 	app.Use(cors.New(cors.Config{

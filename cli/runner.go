@@ -121,7 +121,7 @@ func RunWithTransport(args []string, rt http.RoundTripper) error {
 		return fmt.Errorf("download test failed: %w", err)
 	}
 	if !cfg.JSONOut {
-		fmt.Printf("    Download: %.2f Mbps (%.2f MB transferred)\n", dlMbps, float64(dlBytes)/(1024*1024))
+		fmt.Printf("    Download: %.2f Mbps (%s transferred)\n", dlMbps, FormatBytes(dlBytes))
 	}
 
 	// 3. Upload Test
@@ -136,7 +136,7 @@ func RunWithTransport(args []string, rt http.RoundTripper) error {
 		return fmt.Errorf("upload test failed: %w", err)
 	}
 	if !cfg.JSONOut {
-		fmt.Printf("    Upload  : %.2f Mbps (%.2f MB transferred)\n", ulMbps, float64(ulBytes)/(1024*1024))
+		fmt.Printf("    Upload  : %.2f Mbps (%s transferred)\n", ulMbps, FormatBytes(ulBytes))
 	}
 
 	res := CLIResult{
@@ -158,8 +158,8 @@ func RunWithTransport(args []string, rt http.RoundTripper) error {
 		fmt.Println("  🏆 TEST SUMMARY:")
 		fmt.Printf("    Latency  : %.2f ms\n", res.PingMs)
 		fmt.Printf("    Jitter   : %.2f ms\n", res.JitterMs)
-		fmt.Printf("    Download : %.2f Mbps\n", res.DownloadMbps)
-		fmt.Printf("    Upload   : %.2f Mbps\n", res.UploadMbps)
+		fmt.Printf("    Download : %.2f Mbps (%s)\n", res.DownloadMbps, FormatBytes(res.DownloadBytes))
+		fmt.Printf("    Upload   : %.2f Mbps (%s)\n", res.UploadMbps, FormatBytes(res.UploadBytes))
 		fmt.Println("======================================================")
 	}
 
@@ -216,6 +216,33 @@ func runPing(client *http.Client, server string, count int) (float64, float64, e
 	return minLatency, jitter, nil
 }
 
+// FormatBytes formats byte counts dynamically into B, KB, MB, GB, TB, or PB
+func FormatBytes(b int64) string {
+	const (
+		KB = 1024
+		MB = 1024 * KB
+		GB = 1024 * MB
+		TB = 1024 * GB
+		PB = 1024 * TB
+	)
+
+	bf := float64(b)
+	switch {
+	case b >= PB:
+		return fmt.Sprintf("%.2f PB", bf/PB)
+	case b >= TB:
+		return fmt.Sprintf("%.2f TB", bf/TB)
+	case b >= GB:
+		return fmt.Sprintf("%.2f GB", bf/GB)
+	case b >= MB:
+		return fmt.Sprintf("%.2f MB", bf/MB)
+	case b >= KB:
+		return fmt.Sprintf("%.2f KB", bf/KB)
+	default:
+		return fmt.Sprintf("%d B", b)
+	}
+}
+
 func runDownload(cfg CLIConfig, rt http.RoundTripper) (float64, int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Duration)*time.Second)
 	defer cancel()
@@ -226,11 +253,11 @@ func runDownload(cfg CLIConfig, rt http.RoundTripper) (float64, int64, error) {
 
 	client := &http.Client{
 		Transport: &http.Transport{
-			MaxIdleConns:        cfg.Parallel * 4,
-			MaxIdleConnsPerHost: cfg.Parallel * 4,
+			MaxIdleConns:        cfg.Parallel * 8,
+			MaxIdleConnsPerHost: cfg.Parallel * 8,
 			DisableCompression:  true,
-			ReadBufferSize:      256 * 1024,
-			WriteBufferSize:     256 * 1024,
+			ReadBufferSize:      512 * 1024,
+			WriteBufferSize:     128 * 1024,
 		},
 	}
 	if rt != nil {
@@ -241,29 +268,29 @@ func runDownload(cfg CLIConfig, rt http.RoundTripper) (float64, int64, error) {
 		wg.Add(1)
 		go func(streamID int) {
 			defer wg.Done()
+			var streamBytes int64
+			copyBuf := make([]byte, 512*1024)
 
 			for {
 				if ctx.Err() != nil {
-					return
+					break
 				}
-				url := fmt.Sprintf("%s/api/v1/download?stream=%d", cfg.Server, streamID)
+				url := fmt.Sprintf("%s/api/v1/download?size=33554432&stream=%d", cfg.Server, streamID)
 				req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 				if err != nil {
-					return
+					break
 				}
 				req.Header.Set("Cache-Control", "no-cache")
 
 				resp, err := client.Do(req)
 				if err != nil {
-					return
+					break
 				}
-				n, _ := io.Copy(io.Discard, resp.Body)
+				n, _ := io.CopyBuffer(io.Discard, resp.Body, copyBuf)
 				resp.Body.Close()
-
-				if n > 0 {
-					atomic.AddInt64(&totalBytes, n)
-				}
+				streamBytes += n
 			}
+			atomic.AddInt64(&totalBytes, streamBytes)
 		}(i)
 	}
 
@@ -287,8 +314,8 @@ func runUpload(cfg CLIConfig, rt http.RoundTripper) (float64, int64, error) {
 	var wg sync.WaitGroup
 	start := time.Now()
 
-	// Incompressible chunk of 1MB in RAM
-	chunkSize := 1024 * 1024
+	// Incompressible chunk of 4MB in RAM (reduces request frequency & CPU usage)
+	chunkSize := 4 * 1024 * 1024
 	chunk := make([]byte, chunkSize)
 	for i := range chunk {
 		chunk[i] = byte(i * 31)
@@ -296,9 +323,11 @@ func runUpload(cfg CLIConfig, rt http.RoundTripper) (float64, int64, error) {
 
 	client := &http.Client{
 		Transport: &http.Transport{
-			MaxIdleConns:        cfg.Parallel * 2,
-			MaxIdleConnsPerHost: cfg.Parallel * 2,
+			MaxIdleConns:        cfg.Parallel * 4,
+			MaxIdleConnsPerHost: cfg.Parallel * 4,
 			DisableCompression:  true,
+			WriteBufferSize:     256 * 1024,
+			ReadBufferSize:      64 * 1024,
 		},
 	}
 	if rt != nil {
@@ -309,28 +338,30 @@ func runUpload(cfg CLIConfig, rt http.RoundTripper) (float64, int64, error) {
 		wg.Add(1)
 		go func(streamID int) {
 			defer wg.Done()
+			var streamBytes int64
 
 			for {
 				if ctx.Err() != nil {
-					return
+					break
 				}
 				url := fmt.Sprintf("%s/api/v1/upload?stream=%d", cfg.Server, streamID)
 				req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(chunk))
 				if err != nil {
-					return
+					break
 				}
 				req.Header.Set("Content-Type", "application/octet-stream")
 				req.Header.Set("Cache-Control", "no-cache")
 
 				resp, err := client.Do(req)
 				if err != nil {
-					return
+					break
 				}
 				io.Copy(io.Discard, resp.Body)
 				resp.Body.Close()
 
-				atomic.AddInt64(&totalBytes, int64(chunkSize))
+				streamBytes += int64(chunkSize)
 			}
+			atomic.AddInt64(&totalBytes, streamBytes)
 		}(i)
 	}
 
